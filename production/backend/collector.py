@@ -3,8 +3,9 @@ Copyright @emontj 2024
 """
 
 import feedparser
-import pandas as pd
 import hashlib
+import pandas as pd
+from sqlalchemy.dialects.postgresql import insert
 
 # TODO: Load sources from database
 NEWS_SOURCES = {
@@ -195,7 +196,7 @@ def add_hashed_column(df, column_name, hash_column_name):
     df[hash_column_name] = df[column_name].apply(hash_value)
     return df
 
-def update_data(news_sources):
+def update_data(news_sources, sql_engine=None):
     running_df = None
 
     for k, v in news_sources.items():
@@ -207,10 +208,29 @@ def update_data(news_sources):
         else:
             running_df = pd.concat([running_df, new_df], ignore_index=True)
     
-    # add_hashed_column(running_df, 'title', 'hashed_title')
-    
-    # TODO: write to SQL
+    if sql_engine:
+        add_hashed_column(running_df, 'title', 'hashed_title')
+        running_df.to_sql('news_rss', sql_engine, if_exists='replace') # TODO: use add rows without duplicates method
+
+def add_rows_without_duplicates(df: pd.DataFrame, engine, table_name: str, unique_columns: list):
+    """
+    Add rows to a database table, avoiding duplicates based on unique columns.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the rows to be added.
+        engine: The SQLAlchemy engine for the database connection.
+        table_name (str): The name of the table in the database.
+        unique_columns (list): List of columns to check for uniqueness.
+
+    Returns:
+        None
+    """
+    with engine.connect() as conn:
+        for _, row in df.iterrows():
+            insert_stmt = insert(table_name).values(row.to_dict())
+            upsert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=unique_columns)
+            conn.execute(upsert_stmt)
     
 
 if __name__ == "__main__":
-    update_data(NEWS_SOURCES)
+    update_data(NEWS_SOURCES, sql_engine=None)
