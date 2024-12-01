@@ -7,8 +7,7 @@ import hashlib
 import pandas as pd
 from sqlalchemy.dialects.postgresql import insert
 
-# TODO: Load sources from database
-NEWS_SOURCES = {
+TEST_NEWS_SOURCES = {
     "CNN": {
         "links": {
             "politics": "http://rss.cnn.com/rss/cnn_allpolitics.rss",
@@ -233,4 +232,4 @@ def add_rows_without_duplicates(df: pd.DataFrame, engine, table_name: str, uniqu
     
 
 if __name__ == "__main__":
-    update_data(NEWS_SOURCES, sql_engine=None)
+    update_data(TEST_NEWS_SOURCES, sql_engine=None)
