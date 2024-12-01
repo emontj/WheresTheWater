@@ -208,6 +208,7 @@ def update_data(news_sources, sql_engine=None):
             running_df = pd.concat([running_df, new_df], ignore_index=True)
     
     if sql_engine:
+        running_df = prepare_dataframe_for_sql(running_df)
         add_hashed_column(running_df, 'title', 'hashed_title')
         running_df.to_sql('news_rss', sql_engine, if_exists='replace') # TODO: use add rows without duplicates method
 
@@ -229,7 +230,30 @@ def add_rows_without_duplicates(df: pd.DataFrame, engine, table_name: str, uniqu
             insert_stmt = insert(table_name).values(row.to_dict())
             upsert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=unique_columns)
             conn.execute(upsert_stmt)
+
+def prepare_dataframe_for_sql(df):
+    """
+    Prepares a pandas DataFrame for insertion into a SQLite database.
     
+    Steps:
+    1. Replace NaN values with None for SQLite compatibility.
+    2. Ensure datetime columns are converted to strings.
+    3. Convert all other columns to strings where appropriate.
+    
+    Parameters:
+    df (pd.DataFrame): The DataFrame to be processed.
+    
+    Returns:
+    pd.DataFrame: The processed DataFrame ready for SQLite insertion.
+    """
+    df = df.where(pd.notnull(df), None)
+
+    for col in df.select_dtypes(include=['datetime', 'datetimetz']):
+        df[col] = df[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+    
+    df = df.applymap(lambda x: str(x) if x is not None else x)
+    
+    return df
 
 if __name__ == "__main__":
     update_data(TEST_NEWS_SOURCES, sql_engine=None)
