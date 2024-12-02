@@ -8,7 +8,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 
 from production.backend.collector import update_data
-from production.backend.analyzer import read_table
+from production.backend.analyzer import run_analysis
 from production.backend.source_configs import PRODUCTION_NEWS_SOURCES
 
 app = Flask(__name__)
@@ -45,8 +45,9 @@ def update_and_save():
 
 @app.route('/analyze', methods=['GET'])
 def analyze_data(): # TODO
-    df = read_table(db.engine, 'news_rss')
-    print(df.columns)
+    analysis_df = run_analysis(db.engine, limit = 5)
+    print(analysis_df)
+    
     return 'Analyzed'
 
 if __name__ == '__main__':
