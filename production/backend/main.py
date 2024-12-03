@@ -46,10 +46,14 @@ def update_and_save():
 
 @app.route('/analyze', methods=['GET'])
 def analyze_data(): # TODO
-    analysis_df = run_analysis(db.engine, limit = 5)
-    print(analysis_df)
-    
-    return 'Analyzed'
+
+    try:
+        analysis_df = run_analysis(db.engine, limit = 5)
+        print(analysis_df)
+
+        return 'analyzed'
+    except Exception as e:
+        return str(e)
 
 @app.route('/topic/<string:topic_name>', methods=['GET'])
 def get_topic_by_name(topic_name):
