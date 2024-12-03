@@ -70,7 +70,7 @@ def get_topic_by_name(topic_name):
         return jsonify(topic_dict)
 
 @app.route('/posting/<string:hashed_title>', methods=['GET'])
-def get_topic_by_name(hashed_title):
+def get_posting_by_id(hashed_title):
     query = f'SELECT * FROM news_rss WHERE hashed_title = "{hashed_title}"'
 
     with db.engine.connect() as connection:
