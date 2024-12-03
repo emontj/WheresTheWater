@@ -6,6 +6,7 @@ import time
 
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 import pandas as pd
 
 from production.backend.collector import update_data
@@ -45,8 +46,7 @@ def update_and_save():
         return 'Check feed later, updated too frequently'
 
 @app.route('/analyze', methods=['GET'])
-def analyze_data(): # TODO
-
+def analyze_data():
     try:
         analysis_df = run_analysis(db.engine, limit = 5)
         print(analysis_df)
@@ -57,12 +57,12 @@ def analyze_data(): # TODO
 
 @app.route('/topic/<string:topic_name>', methods=['GET'])
 def get_topic_by_name(topic_name):
-    query = f'SELECT * FROM analyzed_rss WHERE topic = "{topic_name}"'
+    query = text('SELECT * FROM analyzed_rss WHERE topic = :topic_name')
 
     with db.engine.connect() as connection:
-        result = connection.execute(db.text(query))
+        result = connection.execute(query, {'topic_name': topic_name})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    
+
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
@@ -71,12 +71,12 @@ def get_topic_by_name(topic_name):
 
 @app.route('/person/<string:person_name>', methods=['GET'])
 def get_person_by_name(person_name):
-    query = f'SELECT * FROM analyzed_rss WHERE individuals LIKE "{person_name}"'
+    query = text('SELECT * FROM analyzed_rss WHERE individuals LIKE :person_name')
 
     with db.engine.connect() as connection:
-        result = connection.execute(db.text(query))
+        result = connection.execute(query, {'person_name': f'%{person_name}%'})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    
+
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
@@ -85,27 +85,30 @@ def get_person_by_name(person_name):
 
 @app.route('/posting/<string:hashed_title>', methods=['GET'])
 def get_posting_by_id(hashed_title):
-    query = f'SELECT * FROM news_rss JOIN analyzed_rss ON news_rss.hashed_title = analyzed_rss.hashed_title WHERE news_rss.hashed_title = "{hashed_title}"'
+    query = text('''
+        SELECT * FROM news_rss
+        JOIN analyzed_rss ON news_rss.hashed_title = analyzed_rss.hashed_title
+        WHERE news_rss.hashed_title = :hashed_title
+    ''')
 
     with db.engine.connect() as connection:
-        result = connection.execute(db.text(query))
+        result = connection.execute(query, {'hashed_title': hashed_title})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    
+
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
         topic_dict = df.to_dict(orient='records')
         return jsonify(topic_dict)
 
-# Difference between posting and raw_posting is raw_posting queries the collected postings database and posting will join with analyzed data.
 @app.route('/raw_posting/<string:hashed_title>', methods=['GET'])
 def get_raw_posting_by_id(hashed_title):
-    query = f'SELECT * FROM news_rss WHERE hashed_title = "{hashed_title}"'
+    query = text('SELECT * FROM news_rss WHERE hashed_title = :hashed_title')
 
     with db.engine.connect() as connection:
-        result = connection.execute(db.text(query))
+        result = connection.execute(query, {'hashed_title': hashed_title})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    
+
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
