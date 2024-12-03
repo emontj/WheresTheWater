@@ -66,8 +66,8 @@ def get_topic_by_name(topic_name):
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
-        topic_dict = df.to_dict(orient='records')
-        return jsonify(topic_dict)
+        output_dict = df.to_dict(orient='records')
+        return jsonify(output_dict)
 
 @app.route('/person/<string:person_name>', methods=['GET'])
 def get_person_by_name(person_name):
@@ -80,8 +80,8 @@ def get_person_by_name(person_name):
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
-        topic_dict = df.to_dict(orient='records')
-        return jsonify(topic_dict)
+        output_dict = df.to_dict(orient='records')
+        return jsonify(output_dict)
 
 @app.route('/posting/<string:hashed_title>', methods=['GET'])
 def get_posting_by_id(hashed_title):
@@ -98,8 +98,8 @@ def get_posting_by_id(hashed_title):
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
-        topic_dict = df.to_dict(orient='records')
-        return jsonify(topic_dict)
+        output_dict = df.to_dict(orient='records')
+        return jsonify(output_dict)
 
 @app.route('/raw_posting/<string:hashed_title>', methods=['GET'])
 def get_raw_posting_by_id(hashed_title):
@@ -112,8 +112,28 @@ def get_raw_posting_by_id(hashed_title):
     if df.empty:
         return jsonify({'error': 'No records with search term'}), 404
     else:
-        topic_dict = df.to_dict(orient='records')
-        return jsonify(topic_dict)
+        output_dict = df.to_dict(orient='records')
+        return jsonify(output_dict)
+
+@app.route('/counts', methods=['GET'])
+def counts():
+    query1 = text('SELECT Individuals, COUNT(*) AS value_count FROM analyzed_rss GROUP BY Individuals ORDER BY value_count DESC;')
+    query2 = text('SELECT Topic, COUNT(*) AS value_count FROM analyzed_rss GROUP BY Topic ORDER BY value_count DESC;')
+
+    with db.engine.connect() as connection:
+        result = connection.execute(query1)
+        df1 = pd.DataFrame(result.fetchall(), columns=result.keys())
+
+        result = connection.execute(query2)
+        df2 = pd.DataFrame(result.fetchall(), columns=result.keys())
+
+    if df1.empty or df2.empty:
+        return jsonify({'error': 'No records with search term'}), 404
+    else:
+        output_dict = {}
+        output_dict['Individuals'] = df1.set_index('Individuals')['value_count'].to_dict()
+        output_dict['Topics'] = df2.set_index('Topic')['value_count'].to_dict()
+        return jsonify(output_dict)
 
 if __name__ == '__main__':
     with app.app_context():
