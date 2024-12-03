@@ -71,6 +71,21 @@ def get_topic_by_name(topic_name):
 
 @app.route('/posting/<string:hashed_title>', methods=['GET'])
 def get_posting_by_id(hashed_title):
+    query = f'SELECT * FROM news_rss JOIN analyzed_rss ON news_rss.hashed_title = analyzed_rss.hashed_title WHERE news_rss.hashed_title = "{hashed_title}"'
+
+    with db.engine.connect() as connection:
+        result = connection.execute(db.text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    
+    if df.empty:
+        return jsonify({'error': 'No records with search term'}), 404
+    else:
+        topic_dict = df.to_dict(orient='records')
+        return jsonify(topic_dict)
+
+# Difference between posting and raw_posting is raw_posting queries the collected postings database and posting will join with analyzed data.
+@app.route('/raw_posting/<string:hashed_title>', methods=['GET'])
+def get_raw_posting_by_id(hashed_title):
     query = f'SELECT * FROM news_rss WHERE hashed_title = "{hashed_title}"'
 
     with db.engine.connect() as connection:
