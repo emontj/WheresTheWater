@@ -4,8 +4,9 @@ Copyright @emontj 2024
 
 import time
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+import pandas as pd
 
 from production.backend.collector import update_data
 from production.backend.analyzer import run_analysis
@@ -49,6 +50,20 @@ def analyze_data(): # TODO
     print(analysis_df)
     
     return 'Analyzed'
+
+@app.route('/topic/<string:topic_name>', methods=['GET'])
+def get_topic_by_name(topic_name):
+    query = f'SELECT * FROM analyzed_rss WHERE topic = "{topic_name}"'
+
+    with db.engine.connect() as connection:
+        result = connection.execute(db.text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    
+    if df.empty:
+        return jsonify({'error': 'No records with search term'}), 404
+    else:
+        topic_dict = df.to_dict(orient='records')
+        return jsonify(topic_dict)
 
 if __name__ == '__main__':
     with app.app_context():
