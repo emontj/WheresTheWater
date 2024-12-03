@@ -54,6 +54,7 @@ def analyze_dict(row_dict) -> pd.DataFrame:
 
     message_parts = message.split('\n')
     message_parts = [part.strip() for part in message_parts]
+    message_parts = [part.lower() for part in message_parts]
     message_parts = {part.split(': ', 1)[0] : part.split(': ', 1)[1] for part in message_parts}
     message_parts['hashed_title'] = row_dict['hashed_title']
 
