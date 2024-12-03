@@ -69,6 +69,20 @@ def get_topic_by_name(topic_name):
         topic_dict = df.to_dict(orient='records')
         return jsonify(topic_dict)
 
+@app.route('/posting/<string:hashed_title>', methods=['GET'])
+def get_topic_by_name(hashed_title):
+    query = f'SELECT * FROM news_rss WHERE hashed_title = "{hashed_title}"'
+
+    with db.engine.connect() as connection:
+        result = connection.execute(db.text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    
+    if df.empty:
+        return jsonify({'error': 'No records with search term'}), 404
+    else:
+        topic_dict = df.to_dict(orient='records')
+        return jsonify(topic_dict)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
