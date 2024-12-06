@@ -7,6 +7,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Clear pip cache
+          command: pip cache purge
+      - run:
           name: Set up virtual environment
           command: |
             python -m venv venv
