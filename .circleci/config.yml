@@ -20,7 +20,7 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest testing/tests --maxfail=5 --disable-warnings
+            python -m run_tests
 
 workflows:
   version: 2
