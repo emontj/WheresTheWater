@@ -3,9 +3,9 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: circleci/python:3.10  # Updated to Python 3.10.6
+      - image: circleci/python:3.10
     steps:
-      - checkout  # Pull the code from the repository
+      - checkout
       - run:
           name: Set up virtual environment
           command: |
