@@ -6,6 +6,8 @@ import time
 
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter
 from sqlalchemy import text
 import pandas as pd
 
@@ -17,6 +19,14 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.sqlite3'
 last_feed_update = 0
 db = SQLAlchemy(app)
+metrics = PrometheusMetrics(app)
+total_request_counter = Counter('requests_total', 'Total number of requests')
+posting_counter = Counter('requests_posting', 'Total requests for postings')
+topic_counter = Counter('requests_topic', 'Total requests for topic')
+
+@app.before_request
+def increment_counter():
+    total_request_counter.inc()
 
 @app.route("/")
 def main():
@@ -57,6 +67,7 @@ def analyze_data():
 
 @app.route('/topic/<string:topic_name>', methods=['GET'])
 def get_topic_by_name(topic_name):
+    topic_counter.inc()
     query = text('SELECT * FROM analyzed_rss WHERE topic = :topic_name')
 
     with db.engine.connect() as connection:
@@ -85,6 +96,7 @@ def get_person_by_name(person_name):
 
 @app.route('/posting/<string:hashed_title>', methods=['GET'])
 def get_posting_by_id(hashed_title):
+    posting_counter.inc()
     query = text('''
         SELECT * FROM news_rss
         JOIN analyzed_rss ON news_rss.hashed_title = analyzed_rss.hashed_title
@@ -134,6 +146,14 @@ def counts():
         output_dict['Individuals'] = df1.set_index('Individuals')['value_count'].to_dict()
         output_dict['Topics'] = df2.set_index('Topic')['value_count'].to_dict()
         return jsonify(output_dict)
+    
+@app.route('/status', methods=['GET'])
+def status():
+    return 'All Systems Functional'
+
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    return 'All Systems Functional'
 
 if __name__ == '__main__':
     with app.app_context():
