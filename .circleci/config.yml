@@ -1,0 +1,30 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.10.6  # Updated to Python 3.10.6
+    steps:
+      - checkout  # Pull the code from the repository
+      - run:
+          name: Set up virtual environment
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r production/backend/requirements.txt
+            pip install -r testing/tests/requirements.txt
+      - run:
+          name: Run tests
+          command: |
+            . venv/bin/activate
+            pytest testing/tests --maxfail=5 --disable-warnings
+
+workflows:
+  version: 2
+  test_workflow:
+    jobs:
+      - test
