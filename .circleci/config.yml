@@ -7,14 +7,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Clear pip cache
-          command: pip cache purge
       - run:
           name: Set up virtual environment
           command: |
             python -m venv venv
             . venv/bin/activate
             pip install --upgrade pip
+            pip cache purge
       - run:
           name: Install dependencies
           command: |
