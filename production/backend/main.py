@@ -5,16 +5,18 @@ Copyright @emontj 2024
 import time
 
 from flask import Flask, request, jsonify
+from flask_healthz import healthz
 from flask_sqlalchemy import SQLAlchemy
-from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter
-from sqlalchemy import text
 import pandas as pd
+from prometheus_client import Counter
+from prometheus_flask_exporter import PrometheusMetrics
+from sqlalchemy import text
 
 from production.backend.analyzer import run_analysis
 from production.backend.collector import update_data
 from production.backend.source_configs import PRODUCTION_NEWS_SOURCES
 from production.monitoring.dashboard import build_dashboard
+from production.monitoring.health import ReadinessChecks
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.sqlite3'
@@ -24,6 +26,7 @@ metrics = PrometheusMetrics(app)
 total_request_counter = Counter('requests_total', 'Total number of requests')
 posting_counter = Counter('requests_posting', 'Total requests for postings')
 topic_counter = Counter('requests_topic', 'Total requests for topic')
+app.register_blueprint(healthz, url_prefix="/health")
 
 @app.before_request
 def increment_counter():
@@ -147,14 +150,37 @@ def counts():
         output_dict['Individuals'] = df1.set_index('Individuals')['value_count'].to_dict()
         output_dict['Topics'] = df2.set_index('Topic')['value_count'].to_dict()
         return jsonify(output_dict)
-    
-@app.route('/pulse', methods=['GET'])
-def pulse():
-    return 'Received and responded'
 
 @app.route('/dashboard')
 def dashboard():
     return build_dashboard()
+
+def liveness():
+    return True, "I am alive"
+
+def readiness():
+    """
+    Run all readiness checks and return True if all checks pass.
+    Returns False with a reason if any check fails.
+    """
+
+    checks = {
+        "Database": ReadinessChecks.check_database(db.engine),
+        # "GPT API": ReadinessChecks.check_gpt_api(api_url, os.getenv('OPENAI_API_KEY')), # TODO
+        "RSS Feed": ReadinessChecks.check_rss_feed(PRODUCTION_NEWS_SOURCES['CNN']['links']['politics']),
+    }
+    failed_checks = {name: result for name, result in checks.items() if not result[0]}
+
+    if not failed_checks:
+        return True, "All checks passed"
+    return True, "I am ready"
+
+app.config.update(
+    HEALTHZ={
+        "live": liveness,
+        "ready": readiness
+    }
+)
 
 if __name__ == '__main__':
     with app.app_context():
