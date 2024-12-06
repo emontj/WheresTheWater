@@ -1,3 +1,7 @@
+"""
+Copyright @emontj 2024
+"""
+
 import unittest
 from unittest.mock import patch, MagicMock
 import pandas as pd
