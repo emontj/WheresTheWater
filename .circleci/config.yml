@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: circleci/python:3.10.6  # Updated to Python 3.10.6
+      - image: circleci/python:3.10  # Updated to Python 3.10.6
     steps:
       - checkout  # Pull the code from the repository
       - run:
