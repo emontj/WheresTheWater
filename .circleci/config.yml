@@ -15,8 +15,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install -r production/backend/requirements.txt
-            pip install -r testing/tests/requirements.txt
+            pip install -r requirements.txt
       - run:
           name: Run tests
           command: |
