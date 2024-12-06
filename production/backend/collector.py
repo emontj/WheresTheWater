@@ -201,6 +201,7 @@ def update_data(news_sources, sql_engine=None):
     for k, v in news_sources.items():
         feed = fetch_rss_for_outlet(k, news_sources)
         new_df = extract_all_entries(feed, news_sources)
+        new_df['outlet'] = k
 
         if running_df is None:
             running_df = new_df
