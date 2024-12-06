@@ -11,9 +11,10 @@ from prometheus_client import Counter
 from sqlalchemy import text
 import pandas as pd
 
-from production.backend.collector import update_data
 from production.backend.analyzer import run_analysis
+from production.backend.collector import update_data
 from production.backend.source_configs import PRODUCTION_NEWS_SOURCES
+from production.monitoring.dashboard import build_dashboard
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.sqlite3'
@@ -147,13 +148,13 @@ def counts():
         output_dict['Topics'] = df2.set_index('Topic')['value_count'].to_dict()
         return jsonify(output_dict)
     
-@app.route('/status', methods=['GET'])
-def status():
-    return 'All Systems Functional'
+@app.route('/pulse', methods=['GET'])
+def pulse():
+    return 'Received and responded'
 
-@app.route('/metrics', methods=['GET'])
-def metrics():
-    return 'All Systems Functional'
+@app.route('/dashboard')
+def dashboard():
+    return build_dashboard()
 
 if __name__ == '__main__':
     with app.app_context():
