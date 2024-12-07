@@ -40,6 +40,7 @@ def analyze_dict(row_dict) -> pd.DataFrame:
         Assess the title and summary of this article, and extract the topic and the most focused-on individual in the article.  Enter none if no individual is mentioned.
         Use First and Last name for individuals regardless of how they are referenced in the article data.  DO NOT include nicknames or middle initials.
         For acronyms in topics, style as all upper-case with no spaces or periods.  For example, "NFL", "NBA", "DOGE".
+        Topics such as "Politics" are too general, so ensure topics representing what the article is about.  Topics like "Tariffs", "Journalism", "Military" are good.
         
         Output format:
         Topic: <insert topic here, singular>
