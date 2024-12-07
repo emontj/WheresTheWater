@@ -3,6 +3,7 @@ Copyright @emontj 2024
 """
 
 import time
+import traceback
 
 from flask import Flask, request, jsonify, render_template
 from flask_healthz import healthz
@@ -61,12 +62,13 @@ def update_and_save():
 @app.route('/analyze', methods=['GET'])
 def analyze_data():
     try:
-        analysis_df = run_analysis(db.engine, limit = 5)
+        analysis_df = run_analysis(db.engine, limit = 50)
         print(analysis_df)
 
         return 'analyzed'
     except Exception as e:
-        return str(e)
+        # return str(traceback.format_exc()) # NOTE: this is helpful for debugging, but exposes server structure so do not enable when in production.
+        return 'An error occured when analyzing the data'
 
 @app.route('/topic/<string:topic_name>', methods=['GET'])
 def get_topic_by_name(topic_name):
@@ -146,8 +148,8 @@ def counts():
         return jsonify({'error': 'No records with search term'}), 404
     else:
         output_dict = {}
-        output_dict['Individuals'] = df1.set_index('Individuals')['value_count'].to_dict()
-        output_dict['Topics'] = df2.set_index('Topic')['value_count'].to_dict()
+        output_dict['Individuals'] = df1.set_index('individuals')['value_count'].to_dict()
+        output_dict['Topics'] = df2.set_index('topic')['value_count'].to_dict()
         return jsonify(output_dict)
 
 @app.route('/dashboard')
