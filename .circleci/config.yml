@@ -11,13 +11,7 @@ jobs:
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
             pip cache purge
-      - run:
-          name: Remove pre-installed packages
-          command: |
-            . venv/bin/activate
-            pip freeze | xargs pip uninstall -y
       - run:
           name: Install dependencies
           command: |
