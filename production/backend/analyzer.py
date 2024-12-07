@@ -3,6 +3,7 @@ Copyright @emontj 2024
 """
 
 import os
+import traceback
 
 import pandas as pd
 from openai import OpenAI
@@ -12,9 +13,11 @@ def read_table(engine, table_name) -> pd.DataFrame:
 
 def analyze_all_rows(df, limit = float('inf')):
     results_df = None
+    count = 0
 
-    for index, row in df.iterrows():
-        if limit > index:
+    for _, row in df.iterrows():
+        # Why not just check index here instead of a counter? Reason: iterrows returns pandas index which may not start at zero depending on how data is passed in.
+        if limit > count:
             row_dict = row.to_dict()
             analysis_df = analyze_dict(row_dict)
 
@@ -22,6 +25,8 @@ def analyze_all_rows(df, limit = float('inf')):
                 results_df = analysis_df
             else:
                 results_df = pd.concat([results_df, analysis_df], ignore_index=True)
+
+            count += 1
         else:
             print('Analysis limit reached')
             break
@@ -32,12 +37,13 @@ def analyze_dict(row_dict) -> pd.DataFrame:
     client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
     prompt = f'''
-        Assess the title and summary of this article, and extract the topic and any well-known individuals involved in the article.
-        Use First and Last name for individuals regardless of how they are referenced in the article data.
-
+        Assess the title and summary of this article, and extract the topic and the most focused-on individual in the article.  Enter none if no individual is mentioned.
+        Use First and Last name for individuals regardless of how they are referenced in the article data.  DO NOT include nicknames or middle initials.
+        For acronyms in topics, style as all upper-case with no spaces or periods.  For example, "NFL", "NBA", "DOGE".
+        
         Output format:
         Topic: <insert topic here, singular>
-        Individuals: <insert individuals identified in the information, comma seperated>
+        Individuals: <insert the primrary individual, singular, as First Last>
         Sentiment: <choose between Positive, Neutral and Negative>
 
         Input:
@@ -66,11 +72,22 @@ def analyze_dict(row_dict) -> pd.DataFrame:
 
 def run_analysis(sql_engine, limit = float('inf')):
     stored_df = read_table(sql_engine, 'news_rss')
-    # TODO: some kind of logic to determine what has been previously analyzed
-    analyzed_df = analyze_all_rows(stored_df, limit = limit)
+
+    try:
+        prev_analyzed_df = read_table(sql_engine, 'analyzed_rss')
+    except Exception:
+        prev_analyzed_df = None
+        print(traceback.format_exc())
+
+    if prev_analyzed_df is not None:
+        to_analyze_df = stored_df[~stored_df['hashed_title'].isin(prev_analyzed_df['hashed_title'])]
+    else:
+        to_analyze_df = stored_df
+
+    analyzed_df = analyze_all_rows(to_analyze_df, limit = limit)
 
     if sql_engine:
-        analyzed_df.to_sql('analyzed_rss', sql_engine, if_exists='replace') # TODO: use add rows without duplicates method
+        analyzed_df.to_sql('analyzed_rss', sql_engine, if_exists='append')
 
     return analyzed_df
 
