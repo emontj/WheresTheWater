@@ -1,3 +1,5 @@
+// Copyright @emontj 2024
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchForm = document.getElementById('searchForm');
     searchForm.addEventListener('submit', (event) => {

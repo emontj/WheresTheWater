@@ -1,3 +1,5 @@
+// Copyright @emontj 2024
+
 class ChartManager {
     constructor(canvasId, type = 'line') {
         this.canvas = document.getElementById(canvasId);

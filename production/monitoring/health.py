@@ -1,3 +1,7 @@
+"""
+Copyright @emontj 2024
+"""
+
 import requests
 from sqlalchemy import create_engine
 import feedparser
