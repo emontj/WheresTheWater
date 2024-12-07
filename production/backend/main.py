@@ -4,7 +4,7 @@ Copyright @emontj 2024
 
 import time
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_healthz import healthz
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
@@ -18,7 +18,11 @@ from production.backend.source_configs import PRODUCTION_NEWS_SOURCES
 from production.monitoring.dashboard import build_dashboard
 from production.monitoring.health import ReadinessChecks
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder='../frontend/static',
+    template_folder='../frontend/templates'
+)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.sqlite3'
 last_feed_update = 0
 db = SQLAlchemy(app)
@@ -34,12 +38,7 @@ def increment_counter():
 
 @app.route("/")
 def main():
-    return '''
-     <form action="/echo_user_input" method="POST">
-         <input name="user_input">
-         <input type="submit" value="Submit!">
-     </form>
-     '''
+    return render_template('index.html')
 
 @app.route("/echo_user_input", methods=["POST"])
 def echo_input():
