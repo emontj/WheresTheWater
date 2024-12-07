@@ -15,8 +15,8 @@ class ChartManager {
             data: {
                 labels: ['Category 1', 'Category 2', 'Category 3'],
                 datasets: [{
-                    label: 'Dataset 1',
-                    data: [30, 50, 20],
+                    label: 'Occurrences as Subject',
+                    data: [1, 1, 1],
                     backgroundColor: this.getBackgroundColors(),
                     borderColor: this.getBorderColors(),
                     borderWidth: 1,
@@ -60,6 +60,30 @@ class ChartManager {
     }
 }
 
+function updateMainCharts() {
+    const individualsChart = new ChartManager('individualsChart', 'pie');
+    const topicsChart = new ChartManager('topicsChart', 'pie');
+
+    fetch('/counts')
+        .then(response => response.json())
+        .then(data => {
+            for (const [key, value] of Object.entries(data)) {
+                const labels = Object.values(value);
+                const counts = Object.keys(value);
+
+                if (key === 'Individuals') {
+                    individualsChart.update(labels, counts);
+                } else if (key === 'Topics') {
+                    topicsChart.update(labels, counts);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // For reference
     // const lineChartManager = new ChartManager('lineChart', 'line');
@@ -68,10 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
     //     lineChartManager.update(newData, newData.map((_, i) => `Item ${i + 1}`));
     // });
 
-    const pieChartManager = new ChartManager('pieChart', 'pie');
-    document.getElementById('updatePieChartButton')?.addEventListener('click', () => {
-        const newData = Array.from({ length: 3 }, () => Math.floor(Math.random() * 100));
-        const newLabels = ['Category A', 'Category B', 'Category C'];
-        pieChartManager.update(newData, newLabels);
-    });
+    // const pieChartManager = new ChartManager('pieChart', 'pie');
+    // document.getElementById('updatePieChartButton')?.addEventListener('click', () => {
+    //     const newData = Array.from({ length: 3 }, () => Math.floor(Math.random() * 100));
+    //     const newLabels = ['Category A', 'Category B', 'Category C'];
+    //     pieChartManager.update(newData, newLabels);
+    // });
+
+    updateMainCharts();
 });
