@@ -62,8 +62,17 @@ button:active {
     background-color: #497b87;
 }
 
-#chart-container {
+.chart-container {
     max-width: 600px;
+    margin: auto;
+    flex: 1;
+}
+
+.chart-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
     margin: auto;
 }
 

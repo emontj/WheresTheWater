@@ -15,9 +15,15 @@
         <input type="text" placeholder="Make a Search" id="searchInput">
         <button type="submit" id="searchButton">Submit</button>
     </form>
-    <div id="chart-container">
-        <canvas id="pieChart"></canvas>
-        <button id="updateButton">Update Chart</button>
+    <div class="chart-row">
+        <div class="chart-container">
+            <h3>Share of Individuals Covered in the Media (All)</h3>
+            <canvas id="individualsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Share of Topics Covered in the Media (All)</h3>
+            <canvas id="topicsChart"></canvas>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='chartManager.js') }}"></script>
