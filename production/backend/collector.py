@@ -5,7 +5,6 @@ Copyright @emontj 2024
 import feedparser
 import hashlib
 import pandas as pd
-from sqlalchemy.dialects.postgresql import insert
 
 TEST_NEWS_SOURCES = {
     "CNN": {
@@ -211,26 +210,7 @@ def update_data(news_sources, sql_engine=None):
     if sql_engine:
         running_df = prepare_dataframe_for_sql(running_df)
         add_hashed_column(running_df, 'title', 'hashed_title')
-        running_df.to_sql('news_rss', sql_engine, if_exists='replace') # TODO: use add rows without duplicates method
-
-def add_rows_without_duplicates(df: pd.DataFrame, engine, table_name: str, unique_columns: list):
-    """
-    Add rows to a database table, avoiding duplicates based on unique columns.
-
-    Parameters:
-        df (pd.DataFrame): The DataFrame containing the rows to be added.
-        engine: The SQLAlchemy engine for the database connection.
-        table_name (str): The name of the table in the database.
-        unique_columns (list): List of columns to check for uniqueness.
-
-    Returns:
-        None
-    """
-    with engine.connect() as conn:
-        for _, row in df.iterrows():
-            insert_stmt = insert(table_name).values(row.to_dict())
-            upsert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=unique_columns)
-            conn.execute(upsert_stmt)
+        running_df.to_sql('news_rss', sql_engine, if_exists='append')
 
 def prepare_dataframe_for_sql(df):
     """
