@@ -3,17 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Chart with Animation</title>
+    <title>Who Says?</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Dynamic Chart Example</h1>
+    <h1>Who Says?</h1>
+    <h2>An AI-powered look into what news platforms are giving what topics and which people the most attention.</h2>
+    <form id="searchForm">
+        <input type="text" placeholder="Make a Search" id="searchInput">
+        <button type="submit" id="searchButton">Submit</button>
+    </form>
     <div id="chart-container">
         <canvas id="myChart"></canvas>
     </div>
     <button id="updateButton">Update Chart</button>
 
     <script src="{{ url_for('static', filename='chartManager.js') }}"></script>
+    <script src="{{ url_for('static', filename='searchBar.js') }}"></script>
 </body>
 </html>
