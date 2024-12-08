@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const query = document.getElementById('searchInput').value;
 
-        // TODO Implement search logic here
+        // TODO: Most basic search functionality, make better in the future.
+        if (query) {
+            // Redirect to /person/{input}
+            window.location.href = `/person/${encodeURIComponent(query)}`;
+        } else {
+            alert('Please enter a valid search term.');
+        }
     });
 });
