@@ -159,7 +159,11 @@ def dashboard():
 @app.route('/debug')
 def debug():
     import os
-    return os.path.abspath(os.path.dirname(__file__)), db.engine.url.database
+    return os.path.abspath(os.path.dirname(__file__))
+
+@app.route('/db')
+def database_debug():
+    return db.engine.url.database
 
 def liveness():
     return True, "I am alive"
