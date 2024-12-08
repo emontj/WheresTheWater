@@ -2,6 +2,7 @@
 Copyright @emontj 2024
 """
 
+import os
 import time
 import traceback
 
@@ -24,7 +25,8 @@ app = Flask(
     static_folder='../frontend/static',
     template_folder='../frontend/templates'
 )
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.sqlite3'
+INSTANCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../instance')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(INSTANCE_PATH, 'Users.sqlite3')}"
 last_feed_update = 0
 db = SQLAlchemy(app)
 metrics = PrometheusMetrics(app)
