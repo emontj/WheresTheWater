@@ -156,6 +156,11 @@ def counts():
 def dashboard():
     return build_dashboard()
 
+@app.route('/debug')
+def debug():
+    import os
+    return os.path.abspath(os.path.dirname(__file__)), db.engine.url.database
+
 def liveness():
     return True, "I am alive"
 
